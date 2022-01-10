@@ -1,4 +1,4 @@
-package serverSide.accounts;
+package sockets.protocols.accounts;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,11 +15,11 @@ import java.util.Hashtable;
  */
 public class AccountManager {
 
+    private Hashtable<String, AccountFullInformation> accounts;
+
     public Hashtable<String, AccountFullInformation> getAccounts() {
         return accounts;
     }
-
-    private Hashtable<String, AccountFullInformation> accounts;
 
     public AccountManager(String dataPath)
     {
@@ -28,20 +28,34 @@ public class AccountManager {
 
     public boolean checkAccount(Account account)
     {
-        byte[] password = accounts.get(account.account()).account().password();
-        //Check matched password
-        if (password != null)
-            return Arrays.equals(password, account.password());
-        return false;
+        try
+        {
+            byte[] password = accounts.get(account.account()).account().password();
+            //Check matched password
+            if (password != null)
+                return Arrays.equals(password, account.password());
+            return false;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 
     public boolean addAccount(AccountFullInformation account)
     {
-        //If the account exists in the system
-        if (accounts.contains(account.account()))
+        try
+        {
+            //If the account exists in the system
+            if (accounts.contains(account.account()))
+                return false;
+            accounts.put(account.account().account(), new AccountFullInformation(account.account(), account.displayedName()));
+            return true;
+        }
+        catch (Exception e)
+        {
             return false;
-        accounts.put(account.account().account(), new AccountFullInformation(account.account(), account.displayedName()));
-        return true;
+        }
     }
 
     public void loadData(String path)

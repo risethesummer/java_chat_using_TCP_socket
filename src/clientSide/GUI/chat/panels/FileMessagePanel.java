@@ -2,7 +2,7 @@ package clientSide.GUI.chat.panels;
 
 import clientSide.GUI.utilities.FileMessage;
 import clientSide.GUI.utilities.Message;
-import sockets.protocols.FileTransfer;
+import sockets.protocols.packet.FileTransfer;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -53,6 +53,6 @@ public class FileMessagePanel extends MessagePanel {
             {
                 JOptionPane.showMessageDialog(this, "Failed to download the file!");
             }
-        };
+        }
     }
 }

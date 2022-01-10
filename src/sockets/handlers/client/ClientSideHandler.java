@@ -1,8 +1,9 @@
 package sockets.handlers.client;
 
 import sockets.handlers.CommunicateSocket;
-import sockets.protocols.Packet;
+import sockets.protocols.packet.Packet;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -15,8 +16,13 @@ import java.util.function.DoubleConsumer;
  */
 public class ClientSideHandler extends CommunicateSocket {
 
+    private Runnable onClose;
+
+
     public ClientSideHandler(Socket socket, Consumer<Packet> onReceivedMessage, Runnable onClose) {
-        super(socket, onReceivedMessage, onClose);
+        super(socket, onReceivedMessage);
+        this.onClose = onClose;
+        doFirstTouch();
     }
 
     @Override
@@ -29,8 +35,30 @@ public class ClientSideHandler extends CommunicateSocket {
         return true;
     }
 
+    @Override
+    public void run()
+    {
+        super.run();
+        if (onClose != null)
+            //Try to trigger closing event
+            onClose.run();
+    }
+
     public void sendAsync(Packet packet, DoubleConsumer showProgress)
     {
         new AsynchronousSender(socket, packet, showProgress);
+    }
+
+    @Override
+    public void close()
+    {
+        try
+        {
+            onClose = null;
+            socket.close();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 }

@@ -4,9 +4,9 @@ import clientSide.GUI.TwoWaysDisposeFrame;
 import clientSide.GUI.utilities.ButtonTextCallback;
 import clientSide.GUI.login.panels.SignInAccountPanel;
 import clientSide.GUI.login.panels.SignUpAccountPanel;
-import serverSide.accounts.Account;
-import serverSide.accounts.AccountFullInformation;
-import sockets.protocols.Packet;
+import sockets.protocols.accounts.Account;
+import sockets.protocols.accounts.AccountFullInformation;
+import sockets.protocols.packet.Packet;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,14 +38,15 @@ public class LoginFrame extends TwoWaysDisposeFrame {
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        cardPanel.add(SIGN_IN_TITLE, new SignInAccountPanel(SIGN_IN_TITLE,"Sign in", onSignIn, new ButtonTextCallback("Sign up a new account", (e) -> cardLayout.show(cardPanel, SIGN_IN_TITLE))));
-        cardPanel.add(SIGN_UP_TITLE, new SignUpAccountPanel(SIGN_UP_TITLE,"Sign up", onSignUp, new ButtonTextCallback("Back to sign in", (e) -> cardLayout.show(cardPanel, SIGN_UP_TITLE))));
+        cardPanel.add(SIGN_IN_TITLE, new SignInAccountPanel(SIGN_IN_TITLE,"Sign in", onSignIn, new ButtonTextCallback("Sign up a new account", (e) -> cardLayout.show(cardPanel, SIGN_UP_TITLE))));
+        cardPanel.add(SIGN_UP_TITLE, new SignUpAccountPanel(SIGN_UP_TITLE,"Sign up", onSignUp, new ButtonTextCallback("Back to sign in", (e) -> cardLayout.show(cardPanel, SIGN_IN_TITLE))));
         cardLayout.show(cardPanel, SIGN_IN_TITLE);
 
         this.getContentPane().add(cardPanel);
         setDefaultLookAndFeelDecorated(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         pack();
+        setLocationRelativeTo(null);
         setVisible(true);
     }
 }

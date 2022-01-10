@@ -4,11 +4,10 @@ import clientSide.GUI.chat.panels.ChatContentPanel;
 import clientSide.GUI.chat.panels.FileMessagePanel;
 import clientSide.GUI.utilities.FileMessage;
 import clientSide.GUI.utilities.Message;
-import serverSide.accounts.AccountShowInformation;
+import sockets.protocols.accounts.AccountShowInformation;
 
 import javax.swing.*;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -34,6 +33,7 @@ public class ChatFrame extends TwoWaysDisposeFrame {
         setDefaultLookAndFeelDecorated(true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         pack();
+        setLocationRelativeTo(null);
     }
 
     public void loadUsers(List<AccountShowInformation> users)
@@ -51,6 +51,31 @@ public class ChatFrame extends TwoWaysDisposeFrame {
             }
 
             SwingUtilities.invokeAndWait(userTab::updateUI);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void reloadUsers(List<AccountShowInformation> users)
+    {
+        try
+        {
+            Set<String> currentStoredUsers = chatIndexes.keySet();
+            HashMap<String, String> loadUsersToName = new HashMap<>();
+            for (AccountShowInformation user : users)
+                loadUsersToName.put(user.account(), user.displayedName());
+            Set<String> newUsers = new HashSet<>(loadUsersToName.keySet());
+            Set<String> offlineUsers = new HashSet<>(currentStoredUsers);
+
+            offlineUsers.removeAll(newUsers);
+            for (String user : offlineUsers)
+                offlineUser(user);
+
+            newUsers.removeAll(currentStoredUsers);
+            for (String user : newUsers)
+                addNewOnlineUser(new AccountShowInformation(user, loadUsersToName.get(user)));
         }
         catch (Exception e)
         {

@@ -1,4 +1,4 @@
-package serverSide.accounts;
+package sockets.protocols.accounts;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;

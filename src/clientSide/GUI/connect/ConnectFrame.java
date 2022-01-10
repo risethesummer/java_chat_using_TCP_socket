@@ -13,15 +13,18 @@ import java.awt.*;
  */
 public class ConnectFrame extends TwoWaysDisposeFrame {
 
-    private final JLabel label = new JLabel();
+    private final JLabel label = new JLabel("You lost connection to the server! Please click the reconnect button!");
+    private final JButton reconnectButton = new JButton("RECONNECT TO THE SERVER");
 
     public ConnectFrame(Runnable reconnect, Runnable onClose)
     {
         super("Reconnect", onClose);
 
-        JButton reconnectButton = new JButton("RECONNECT TO THE SERVER");
-
-        reconnectButton.addActionListener(e -> reconnect.run());
+        reconnectButton.addActionListener(e -> {
+            label.setText("Trying to connect to the server! Please, wait for a moment!");
+            reconnectButton.setEnabled(false);
+            reconnect.run();
+        });
 
         Container contentPane = this.getContentPane();
 
@@ -29,17 +32,17 @@ public class ConnectFrame extends TwoWaysDisposeFrame {
         contentPane.add(label, BorderLayout.PAGE_START);
         contentPane.add(reconnectButton, BorderLayout.PAGE_END);
 
-        //Hide title bar
         setDefaultLookAndFeelDecorated(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         pack();
+        setLocationRelativeTo(null);
     }
 
     @Override
     public void setVisible(boolean visible)
     {
-        if (visible)
-            label.setText("You lost connection to the server! Please click the reconnect button!");
+        label.setText("You lost connection to the server! Please click the reconnect button!");
+        reconnectButton.setEnabled(true);
         super.setVisible(visible);
     }
 }

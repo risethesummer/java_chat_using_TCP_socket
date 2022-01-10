@@ -1,17 +1,18 @@
 package serverSide;
 
-import serverSide.accounts.Account;
-import serverSide.accounts.AccountFullInformation;
-import serverSide.accounts.AccountManager;
-import serverSide.accounts.AccountShowInformation;
+import serverSide.GUI.ServerGUI;
+import sockets.protocols.accounts.Account;
+import sockets.protocols.accounts.AccountFullInformation;
+import sockets.protocols.accounts.AccountManager;
+import sockets.protocols.accounts.AccountShowInformation;
+import sockets.handlers.server.AsynchronousOpenSocket;
 import sockets.handlers.server.ServerSideHandler;
-import sockets.protocols.CommandType;
-import sockets.protocols.Packet;
+import sockets.protocols.packet.CommandType;
+import sockets.protocols.packet.Packet;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.*;
 
-import static sockets.protocols.ErrorContent.*;
+import static sockets.protocols.packet.ErrorContent.*;
 
 /**
  * PACKAGE_NAME
@@ -22,7 +23,7 @@ import static sockets.protocols.ErrorContent.*;
 public class ServerManager {
 
     public static final String SERVER_IP = "localhost";
-    public static final Integer SERVER_PORT = 3400;
+    public static final Integer SERVER_PORT = 19500;
     private final String DATA_PATH = "data.dat";
 
     /**
@@ -55,13 +56,15 @@ public class ServerManager {
     {
         try
         {
-            socket = new ServerSocket(SERVER_PORT);
-            while (!socket.isClosed())
+            //If current socket is closed or not initialized
+            if (socket == null || socket.isClosed())
             {
-                Socket ss = socket.accept();
-                ServerSideHandler handler = new ServerSideHandler(ss, this::handlingMessage, null);
-                handlers.put(handler.getSessionID(), handler);
-                handler.start();
+                socket = new ServerSocket(SERVER_PORT);
+                new AsynchronousOpenSocket(socket, s -> {
+                    ServerSideHandler handler = new ServerSideHandler(s, this::handlingMessage, this::disconnectUser);
+                    handlers.put(handler.getSessionID(), handler);
+                    handler.start();
+                });
             }
         }
         catch (Exception e)
@@ -79,16 +82,41 @@ public class ServerManager {
                 case SIGN_IN -> signIn(msg);
                 case SIGN_UP -> signUp(msg);
                 case SIGN_OUT -> signOut(msg);
-                case DISCONNECT -> disconnectUser(msg);
+                case DISCONNECT -> disconnectUser(msg.sessionID());
+                case RECONNECT ->  reconnectUser(msg);
             }
         }
     }
 
-    private void disconnectUser(Packet msg)
+    private void reconnectUser(Packet msg)
+    {
+        Packet packet;
+        if (accountToSessionID.contains(msg.sender()))
+            packet = new Packet(msg.sessionID(), CommandType.RESPONSE, getOnlineUsers(msg.sender()));
+        else
+            packet = new Packet(msg.sessionID(), CommandType.RESPONSE, false);
+        sendMsg(packet);
+    }
+
+
+    private void disconnectUser(UUID sessionID)
     {
         try
         {
-            handlers.remove(msg.sessionID());
+            ServerSideHandler handler = handlers.get(sessionID);
+            if (handler != null && !handler.isClosed())
+            {
+                try
+                {
+                    handler.close();
+                    handler.join();
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            handlers.remove(sessionID);
         }
         catch (Exception e)
         {
@@ -109,7 +137,7 @@ public class ServerManager {
             else
             {
                 accountToSessionID.put(account.account(), msg.sessionID());
-                response = new Packet(msg.sessionID(), CommandType.RESPONSE, getOnlineUsers());
+                response = new Packet(msg.sessionID(), CommandType.RESPONSE, getOnlineUsers(account.account()));
                 sendAll(new Packet(account.account(), CommandType.NOTIFY_IN));
                 gui.addLog(account.account() + " has just signed in");
                 gui.addOnlineUser(account.account());
@@ -122,11 +150,12 @@ public class ServerManager {
         }
     }
 
-    private ArrayList<AccountShowInformation> getOnlineUsers()
+    private ArrayList<AccountShowInformation> getOnlineUsers(String except)
     {
         ArrayList<AccountShowInformation> users = new ArrayList<>();
         for (AccountFullInformation acc : accountManager.getAccounts().values())
-            users.add(new AccountShowInformation(acc.account().account(), acc.displayedName()));
+            if (!acc.account().account().equals(except))
+                users.add(new AccountShowInformation(acc.account().account(), acc.displayedName()));
         return users;
     }
 
@@ -174,7 +203,7 @@ public class ServerManager {
     {
         try
         {
-            accountToSessionID.remove(msg.receiver());
+            accountToSessionID.remove(msg.sender());
             handlers.remove(msg.sessionID());
             sendAll(new Packet(msg.sender(), CommandType.NOTIFY_OUT));
             gui.deleteUser(msg.sender());
@@ -195,17 +224,47 @@ public class ServerManager {
 
     private void sendAll(Packet msg)
     {
-        UUID senderID = accountToSessionID.get(msg.sender());
+        //Get sender id to not send the message to the sender
+        UUID senderID = msg.sender() == null ? null : accountToSessionID.get(msg.sender());
+        //For each handler, if it's not the sender, send the msg to it
         for (Map.Entry<UUID, ServerSideHandler> handler : handlers.entrySet())
+            //If not the handler of the sender
             if (!handler.getKey().equals(senderID))
                 handler.getValue().sendMsg(msg);
     }
 
     private void close()
     {
-        sendAll(new Packet(CommandType.DISCONNECT));
-        handlers.clear();
-        accountToSessionID.clear();
+        try
+        {
+            if (socket != null && !socket.isClosed())
+            {
+                sendAll(new Packet(CommandType.DISCONNECT));
+                for (ServerSideHandler handler : handlers.values())
+                {
+                    if (!handler.isClosed())
+                    {
+                        try
+                        {
+                            handler.close();
+                            handler.join();
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                socket.close();
+                socket = null;
+            }
+            handlers.clear();
+            accountToSessionID.clear();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void closeProgram()

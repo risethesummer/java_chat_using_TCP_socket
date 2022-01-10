@@ -1,4 +1,4 @@
-package sockets.protocols;
+package sockets.protocols.packet;
 
 import java.io.Serializable;
 

@@ -1,8 +1,8 @@
 package clientSide.GUI.login.panels;
 
 import clientSide.GUI.utilities.ButtonTextCallback;
-import serverSide.accounts.Account;
-import sockets.protocols.Packet;
+import sockets.protocols.accounts.Account;
+import sockets.protocols.packet.Packet;
 
 import javax.swing.*;
 import java.util.function.Function;

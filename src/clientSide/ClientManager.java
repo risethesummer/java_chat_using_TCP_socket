@@ -2,14 +2,14 @@ package clientSide;
 import clientSide.GUI.ClientGUI;
 import clientSide.GUI.utilities.FileMessage;
 import clientSide.GUI.utilities.Message;
-import serverSide.accounts.Account;
-import serverSide.accounts.AccountFullInformation;
-import serverSide.accounts.AccountShowInformation;
+import sockets.protocols.accounts.Account;
+import sockets.protocols.accounts.AccountFullInformation;
+import sockets.protocols.accounts.AccountShowInformation;
 import sockets.handlers.client.ClientConnectAsynchronous;
 import sockets.handlers.client.ClientSideHandler;
-import sockets.protocols.CommandType;
-import sockets.protocols.FileTransfer;
-import sockets.protocols.Packet;
+import sockets.protocols.packet.CommandType;
+import sockets.protocols.packet.FileTransfer;
+import sockets.protocols.packet.Packet;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.function.DoubleConsumer;
@@ -21,6 +21,7 @@ import java.util.function.DoubleConsumer;
  * Description: ...
  */
 public class ClientManager {
+    private ClientConnectAsynchronous connectThread = null;
     private ClientSideHandler handler = null;
     private final ClientGUI gui;
     private String userName = null;
@@ -32,7 +33,10 @@ public class ClientManager {
     ClientManager()
     {
         new ClientConnectAsynchronous(this::connectToServer);
-        gui = new ClientGUI(this::sendMessage, this::sendFile, this::signIn, this::signUp, this::close, this::signOut, () -> new ClientConnectAsynchronous(this::reconnect));
+        gui = new ClientGUI(this::sendMessage, this::sendFile, this::signIn, this::signUp, this::close, this::signOut, () -> {
+            if (connectThread == null || !connectThread.isAlive())
+                new ClientConnectAsynchronous(this::reconnect);
+        });
     }
 
     private void connectToServer(Socket s)
@@ -45,18 +49,47 @@ public class ClientManager {
     private void reconnect(Socket s)
     {
         connectToServer(s);
-        gui.showLoginFrame();
+        if (requestReconnect())
+            gui.showChatFrame();
+        else
+            gui.showLoginFrame();
+    }
+
+    private boolean requestReconnect()
+    {
+        //The username is not null -> has signed in before
+        if (userName != null)
+        {
+            Packet response = handler.sendAndWaitForResponse(new Packet(handler.getSessionID(), userName, CommandType.RECONNECT), CommandType.RESPONSE);
+            if (response.state())
+            {
+                gui.getChatFrame().reloadUsers((ArrayList<AccountShowInformation>)response.getPayloadAsObject());
+                return true;
+            }
+        }
+        return false;
     }
 
     private void handlingDisconnect()
     {
+        if (handler != null)
+        {
+            try
+            {
+                handler.join();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
         handler = null;
         gui.showConnectFrame();
     }
 
     private boolean checkFailConnection()
     {
-        if (handler == null)
+        if (handler == null || handler.isClosed())
         {
             handlingDisconnect();
             return true;
@@ -170,7 +203,8 @@ public class ClientManager {
             if (checkFailConnection()){
                 return;
             }
-
+            //Mark as not login
+            userName = null;
             handler.sendMsg(new Packet(handler.getSessionID(), this.userName, CommandType.SIGN_OUT));
             handler.setShouldStop(true);
             gui.showLoginFrame();
@@ -209,9 +243,17 @@ public class ClientManager {
     {
         try
         {
-            handler.sendMsg(new Packet(handler.getSessionID(), CommandType.DISCONNECT));
-            handler.close();
-            handler.join();
+            if (connectThread != null && connectThread.isAlive())
+            {
+                connectThread.setShouldStop(true);
+                connectThread.join();
+            }
+            if (handler != null)
+            {
+                handler.sendMsg(new Packet(handler.getSessionID(), CommandType.DISCONNECT));
+                handler.close();
+                handler.join();
+            }
             gui.dispose();
         }
         catch (Exception e)

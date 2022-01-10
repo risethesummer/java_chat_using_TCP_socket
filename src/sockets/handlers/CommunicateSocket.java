@@ -1,6 +1,6 @@
 package sockets.handlers;
-import sockets.protocols.CommandType;
-import sockets.protocols.Packet;
+import sockets.protocols.packet.CommandType;
+import sockets.protocols.packet.Packet;
 import java.io.*;
 import java.net.Socket;
 import java.util.UUID;
@@ -18,24 +18,24 @@ public abstract class CommunicateSocket extends Thread {
     protected final Socket socket;
     protected final Consumer<Packet> receivedMessageCallback;
     protected UUID sessionID;
-    private Runnable onClose;
+    protected boolean isShouldStop = false;
 
     public void setShouldStop(boolean shouldStop) {
         isShouldStop = shouldStop;
     }
-
-    private boolean isShouldStop = false;
-
     public UUID getSessionID() {
         return sessionID;
     }
+    public boolean isClosed()
+    {
+        return !socket.isConnected();
+    }
 
-    public CommunicateSocket(Socket socket, Consumer<Packet> onReceivedMessage, Runnable onClose)
+
+    public CommunicateSocket(Socket socket, Consumer<Packet> onReceivedMessage)
     {
         this.socket = socket;
         this.receivedMessageCallback = onReceivedMessage;
-        this.onClose = onClose;
-        doFirstTouch();
     }
 
     public abstract boolean doFirstTouch();
@@ -59,9 +59,6 @@ public abstract class CommunicateSocket extends Thread {
             }
         } while (!socket.isClosed());
 
-        if (onClose != null)
-            //Try to trigger closing event
-            onClose.run();
     }
 
     public Packet sendAndWaitForResponse(Packet msg)
@@ -92,17 +89,17 @@ public abstract class CommunicateSocket extends Thread {
 
     public Packet receiveMessage(CommandType expected)
     {
-        Packet reponse = new Packet(null, CommandType.NOTHING, null);
+        Packet response = new Packet(null, CommandType.NOTHING, null);
         do
         {
             try
             {
-                reponse = receiveMessage();
+                response = receiveMessage();
             }
             catch (Exception e){}
         }
-        while (!reponse.cmd().equals(expected));
-        return reponse;
+        while (!response.cmd().equals(expected));
+        return response;
     }
 
 
@@ -131,10 +128,10 @@ public abstract class CommunicateSocket extends Thread {
         if (!socket.isClosed())
         {
             try {
+                OutputStream getSt = socket.getOutputStream();
                 ObjectOutputStream stream = new ObjectOutputStream(socket.getOutputStream());
                 stream.writeObject(msg);
                 stream.flush();
-                stream.close();
                 return true;
             }
             catch (Exception e)
@@ -146,15 +143,6 @@ public abstract class CommunicateSocket extends Thread {
         return false;
     }
 
-    public void close()
-    {
-        try
-        {
-            onClose = null;
-            socket.close();
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
+    public abstract void close();
+
 }

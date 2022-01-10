@@ -1,6 +1,6 @@
 package clientSide.GUI.utilities;
 
-import sockets.protocols.FileTransfer;
+import sockets.protocols.packet.FileTransfer;
 
 /**
  * clientSide.GUI.utilities

@@ -1,4 +1,4 @@
-package sockets.protocols;
+package sockets.protocols.packet;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -54,6 +54,7 @@ public record Packet(UUID sessionID, String sender, String receiver, CommandType
 
     public Packet(UUID sessionID, String sender, String receiver, CommandType cmd, Serializable obj)
     {
+
         this(sessionID, sender, receiver, cmd, true, toPayload(obj));
     }
 

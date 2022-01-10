@@ -2,8 +2,8 @@ package clientSide.GUI.login.panels;
 
 import clientSide.GUI.utilities.ButtonTextCallback;
 import clientSide.GUI.utilities.InputPanel;
-import serverSide.accounts.Account;
-import serverSide.accounts.AccountFullInformation;
+import sockets.protocols.accounts.Account;
+import sockets.protocols.accounts.AccountFullInformation;
 
 import javax.swing.*;
 import java.util.function.Predicate;
@@ -16,7 +16,7 @@ import java.util.function.Predicate;
  */
 public class SignUpAccountPanel extends AccountPanel {
 
-    private final InputPanel displayedName = new InputPanel("Displayed name");
+    private final InputPanel displayedName = new InputPanel("Displayed name (showed to the others)");
 
     /**
      * Construct a new panel with the callback when clicking the confirm button

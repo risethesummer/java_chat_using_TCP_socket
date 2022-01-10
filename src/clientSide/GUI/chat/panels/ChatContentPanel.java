@@ -2,8 +2,8 @@ package clientSide.GUI.chat.panels;
 
 import clientSide.GUI.utilities.FileMessage;
 import clientSide.GUI.utilities.Message;
-import serverSide.accounts.AccountShowInformation;
-import sockets.protocols.FileTransfer;
+import sockets.protocols.accounts.AccountShowInformation;
+import sockets.protocols.packet.FileTransfer;
 
 import javax.swing.*;
 import java.awt.*;

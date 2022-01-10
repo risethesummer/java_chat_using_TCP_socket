@@ -1,4 +1,4 @@
-package sockets.protocols;
+package sockets.protocols.packet;
 
 import java.io.Serializable;
 
@@ -9,5 +9,5 @@ import java.io.Serializable;
  * Description: ...
  */
 public enum CommandType implements Serializable {
-    SIGN_UP, SIGN_IN, RESPONSE, SIGN_OUT, SEND_MSG, SEND_FILE, FIRST_TOUCH, NOTIFY_IN, NOTIFY_OUT, NOTHING, DISCONNECT
+    SIGN_UP, SIGN_IN, RESPONSE, SIGN_OUT, SEND_MSG, SEND_FILE, FIRST_TOUCH, NOTIFY_IN, NOTIFY_OUT, NOTHING, DISCONNECT, RECONNECT
 }

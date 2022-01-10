@@ -5,9 +5,9 @@ import clientSide.GUI.connect.ConnectFrame;
 import clientSide.GUI.login.LoginFrame;
 import clientSide.GUI.utilities.FileMessage;
 import clientSide.GUI.utilities.Message;
-import serverSide.accounts.Account;
-import serverSide.accounts.AccountFullInformation;
-import sockets.protocols.Packet;
+import sockets.protocols.accounts.Account;
+import sockets.protocols.accounts.AccountFullInformation;
+import sockets.protocols.packet.Packet;
 
 import java.util.function.*;
 

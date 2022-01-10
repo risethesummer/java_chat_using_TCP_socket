@@ -1,5 +1,5 @@
 package sockets.handlers.client;
-import sockets.protocols.Packet;
+import sockets.protocols.packet.Packet;
 
 import java.io.*;
 import java.net.Socket;
@@ -22,6 +22,7 @@ public class AsynchronousSender extends Thread {
         this.socket = socket;
         this.packet = packet;
         this.showProcess = showProcess;
+        start();
     }
 
     @Override

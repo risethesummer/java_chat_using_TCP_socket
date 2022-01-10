@@ -16,10 +16,12 @@ import static serverSide.ServerManager.SERVER_PORT;
 public class ClientConnectAsynchronous extends Thread{
 
     private final Consumer<Socket> onSuccess;
+    private boolean shouldStop = false;
 
     public ClientConnectAsynchronous(Consumer<Socket> onSuccess)
     {
         this.onSuccess = onSuccess;
+        start();
     }
 
     @Override
@@ -30,14 +32,24 @@ public class ClientConnectAsynchronous extends Thread{
         {
             try
             {
+                if (shouldStop)
+                    return;
                 Socket socket = new Socket(SERVER_IP,SERVER_PORT);
                 onSuccess.accept(socket);
                 success = true;
             }
             catch(IOException e)
             {
-                e.printStackTrace();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
+    }
+
+    public void setShouldStop(boolean shouldStop) {
+        this.shouldStop = shouldStop;
     }
 }

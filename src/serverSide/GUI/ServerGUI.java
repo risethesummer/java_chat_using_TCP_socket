@@ -1,4 +1,4 @@
-package serverSide;
+package serverSide.GUI;
 
 import javax.swing.*;
 import java.awt.*;
@@ -48,24 +48,24 @@ public class ServerGUI extends JFrame {
         contentPane.add(listTab);
 
         setDefaultLookAndFeelDecorated(true);
-        setDefaultCloseOperation(HIDE_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         pack();
         setVisible(true);
     }
 
     public void addOnlineUser(String userName)
     {
-        userModel.addElement(userName);
+        SwingUtilities.invokeLater(() ->  userModel.addElement(userName));
     }
 
     public void deleteUser(String userName)
     {
-        userModel.removeElement(userName);
+        SwingUtilities.invokeLater(() -> userModel.removeElement(userName));
     }
 
     public void addLog(String log)
     {
-        logModel.addElement(log);
+        SwingUtilities.invokeLater(() -> logModel.addElement(log));
     }
 
     @Override

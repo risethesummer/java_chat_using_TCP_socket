@@ -27,6 +27,5 @@ public class TwoWaysDisposeFrame extends JFrame {
     public void dispose()
     {
         onClose.run();
-        super.dispose();
     }
 }
