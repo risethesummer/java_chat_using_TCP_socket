@@ -1,38 +1,63 @@
 package clientSide.GUI.chat;
-import clientSide.GUI.TwoWaysDisposeFrame;
+import clientSide.GUI.utilities.TwoWaysDisposeFrame;
 import clientSide.GUI.chat.panels.ChatContentPanel;
-import clientSide.GUI.chat.panels.FileMessagePanel;
-import clientSide.GUI.utilities.FileMessage;
-import clientSide.GUI.utilities.Message;
+import clientSide.GUI.chat.panels.messages.fileMessages.FileMessagePanel;
+import clientSide.messages.FileMessage;
+import clientSide.GUI.utilities.LabelImage;
+import clientSide.messages.Message;
 import sockets.protocols.accounts.AccountShowInformation;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
+import java.util.function.IntConsumer;
+
+import static clientSide.GUI.chat.panels.ChatContentPanel.OTHER;
 
 /**
  * clientSide.GUI.chat
  * Created by NhatLinh - 19127652
  * Date 1/8/2022 - 2:40 PM
- * Description: ...
+ * Description: The frame showing other users and their chat sections
  */
 public class ChatFrame extends TwoWaysDisposeFrame {
 
-    private final JTabbedPane userTab = new JTabbedPane();
+    /**
+     * Each tab for a user chat section
+     */
+    private final JTabbedPane userTab = new JTabbedPane(SwingConstants.LEFT);
+    /**
+     * Store index of each user in the users tab
+     */
     private final Hashtable<String, Integer> chatIndexes = new Hashtable<>();
+    /**
+     * Callback for sending messages
+     */
     private final Consumer<Message> onSendMsg;
-    private final BiConsumer<FileMessage, DoubleConsumer> onSendFile;
+    /**
+     * Callback for sending files
+     */
+    private final BiConsumer<FileMessage, IntConsumer> onSendFile;
 
-    public ChatFrame(Consumer<Message> onSendMsg, BiConsumer<FileMessage, DoubleConsumer> onSendFile, Runnable onClose)
+    /**
+     * Create a new frame
+     * @param onSendMsg sending messages callback
+     * @param onSendFile sending files callback
+     * @param onClose closing the frame callback
+     */
+    public ChatFrame(Consumer<Message> onSendMsg, BiConsumer<FileMessage, IntConsumer> onSendFile, Runnable onClose)
     {
-        super("Chat", onClose);
+        super("Chat (close to sign out)", "chat.png", onClose);
         this.onSendMsg = onSendMsg;
         this.onSendFile = onSendFile;
-        setDefaultLookAndFeelDecorated(true);
-        setDefaultCloseOperation(HIDE_ON_CLOSE);
-        pack();
+        //Set the tab default color is gray
+        UIManager.put("TabbedPane.selected", Color.GRAY);
+        getContentPane().add(userTab);
+        setMinimumSize(new Dimension(700, 700));
+        //Stand in the center of the screen
         setLocationRelativeTo(null);
     }
 
@@ -40,17 +65,10 @@ public class ChatFrame extends TwoWaysDisposeFrame {
     {
         try
         {
-            chatIndexes.clear();
-            SwingUtilities.invokeAndWait(userTab::removeAll);
-
+            //Add the system user notifying useful information
+            onlineUser(new AccountShowInformation("system", "System"));
             for (AccountShowInformation user : users)
-            {
-                ChatContentPanel chat = new ChatContentPanel(user, onSendMsg, onSendFile);
-                SwingUtilities.invokeAndWait(() -> userTab.add(user.displayedName() + " (online)", chat));
-                chatIndexes.put(user.account(), userTab.getTabCount() - 1);
-            }
-
-            SwingUtilities.invokeAndWait(userTab::updateUI);
+                onlineUser(user);
         }
         catch (Exception e)
         {
@@ -58,21 +76,30 @@ public class ChatFrame extends TwoWaysDisposeFrame {
         }
     }
 
+    /**
+     * Show status (online/offline) of the other users (or add new online users)
+     * @param users the online users list
+     */
     public void reloadUsers(List<AccountShowInformation> users)
     {
         try
         {
             Set<String> currentStoredUsers = chatIndexes.keySet();
+            //Get displayed information of the users
             HashMap<String, String> loadUsersToName = new HashMap<>();
             for (AccountShowInformation user : users)
-                loadUsersToName.put(user.account(), user.displayedName());
+                loadUsersToName.put(user.username(), user.displayedName());
+            //Get new online users
             Set<String> newUsers = new HashSet<>(loadUsersToName.keySet());
+            //Get the users have been offline when being disconnected
             Set<String> offlineUsers = new HashSet<>(currentStoredUsers);
 
+            //Offline users = current users - new users
             offlineUsers.removeAll(newUsers);
             for (String user : offlineUsers)
                 offlineUser(user);
 
+            //Online users = new users - current users
             newUsers.removeAll(currentStoredUsers);
             for (String user : newUsers)
                 addNewOnlineUser(new AccountShowInformation(user, loadUsersToName.get(user)));
@@ -83,15 +110,20 @@ public class ChatFrame extends TwoWaysDisposeFrame {
         }
     }
 
+    /**
+     * Add a panel for a new online user
+     * @param user the new online user
+     */
     public void addNewOnlineUser(AccountShowInformation user)
     {
         try
         {
-            SwingUtilities.invokeAndWait(() -> {
-                userTab.add(user.displayedName(), new ChatContentPanel(user, onSendMsg, onSendFile));
-                chatIndexes.put(user.account(), userTab.getTabCount() - 1);
-                userTab.updateUI();
-            });
+            userTab.add(user.displayedName() + " (online)", new ChatContentPanel(user, onSendMsg, onSendFile));
+            LabelImage tabLabel = new LabelImage("online.png", user.displayedName() + " (online)");
+            //Design the tab using a tab label
+            userTab.setTabComponentAt(userTab.getTabCount() - 1, tabLabel);
+            chatIndexes.put(user.username(), userTab.getTabCount() - 1);
+            userTab.updateUI();
         }
         catch (Exception e)
         {
@@ -99,24 +131,48 @@ public class ChatFrame extends TwoWaysDisposeFrame {
         }
     }
 
+    /**
+     * Set a user's status to online (or add a chat section for him)
+     * @param user the online user
+     */
     public void onlineUser(AccountShowInformation user)
     {
 
         try
         {
-            Integer index = chatIndexes.get(user.account());
+            //Get tab index of the user (actually get the chat panel of the user)
+            Integer index = chatIndexes.get(user.username());
+
+            //The action of adding online user
+            Runnable addRun;
+
+            //The user has in the system (no need to add the user)
             if (index != null)
             {
                 ChatContentPanel chat = (ChatContentPanel)userTab.getComponentAt(index);
-                String title = userTab.getTitleAt(index).replace("offline", "online");
+                //Set the title of the panel to online status
+                String title = user.displayedName() + " (online)";
+                //Mark the user as online
                 chat.setOnline(true);
-                SwingUtilities.invokeAndWait(() -> {
+
+                addRun = () -> {
+                    //Set the GUI of the chat panel as online
+                    LabelImage tabLabel = new LabelImage("online.png", title);
+                    userTab.setTabComponentAt(index, tabLabel);
                     userTab.setTitleAt(index, title);
                     userTab.updateUI();
-                });
+                };
             }
             else
-                addNewOnlineUser(user);
+                //If the user is not in the system -> create a new chat panel for him
+                addRun = ()  -> addNewOnlineUser(user);
+
+            //If currently running on the GUI event thread -> run on the current thread
+            //Else, runs on the GUI thread
+            if (SwingUtilities.isEventDispatchThread())
+                addRun.run();
+            else
+                SwingUtilities.invokeAndWait(addRun);
         }
         catch (Exception e)
         {
@@ -124,17 +180,27 @@ public class ChatFrame extends TwoWaysDisposeFrame {
         }
     }
 
+    /**
+     * Set a user's status to offline
+     * @param user the offline user
+     */
     public void offlineUser(String user)
     {
         try
         {
             Integer index = chatIndexes.get(user);
+            //Just mark the user as offline when the user has been in the system
             if (index != null)
             {
+                //Get new offline title
                 String title = userTab.getTitleAt(index).replace("online", "offline");
                 ChatContentPanel chat = (ChatContentPanel)userTab.getComponentAt(index);
+                //Mark the user as offline
                 chat.setOnline(false);
                 SwingUtilities.invokeAndWait(() -> {
+                    //Set the GUI of the chat panel as offline
+                    LabelImage tabLabel = new LabelImage("offline.png", title);
+                    userTab.setTabComponentAt(index, tabLabel);
                     userTab.setTitleAt(index, title);
                     userTab.updateUI();
                 });
@@ -146,24 +212,34 @@ public class ChatFrame extends TwoWaysDisposeFrame {
         }
     }
 
+    /**
+     * Add a file message to a user's chat section
+     * @param file the file message
+     */
     public void addNewFile(FileMessage file)
     {
         Integer index = chatIndexes.get(file.user());
+        //If we could find the chat panel of the user
         if (index != null)
         {
             FileMessagePanel filePanel = new FileMessagePanel(file);
             ChatContentPanel chat = (ChatContentPanel)userTab.getComponentAt(index);
-            chat.addMsg(file.user(), filePanel);
+            chat.addMsg(filePanel, OTHER);
         }
     }
 
+    /**
+     * Add a new text message to a user's chat section
+     * @param msg the text message
+     */
     public void addNewChatLog(Message msg)
     {
         Integer index = chatIndexes.get(msg.user());
+        //If we could find the chat panel of the user
         if (index != null)
         {
             ChatContentPanel chat = (ChatContentPanel)userTab.getComponentAt(index);
-            chat.addMsg(msg);
+            chat.addMsg(msg, OTHER);
         }
     }
 }

@@ -1,6 +1,6 @@
 package clientSide.GUI.connect;
 
-import clientSide.GUI.TwoWaysDisposeFrame;
+import clientSide.GUI.utilities.TwoWaysDisposeFrame;
 
 import javax.swing.*;
 import java.awt.*;
@@ -9,19 +9,31 @@ import java.awt.*;
  * clientSide.GUI.connect
  * Created by NhatLinh - 19127652
  * Date 1/9/2022 - 9:12 PM
- * Description: ...
+ * Description: The frame for reconnecting
  */
 public class ConnectFrame extends TwoWaysDisposeFrame {
 
+    /**
+     * The label showing current status
+     */
     private final JLabel label = new JLabel("You lost connection to the server! Please click the reconnect button!");
+    /**
+     * Reconnect button
+     */
     private final JButton reconnectButton = new JButton("RECONNECT TO THE SERVER");
 
+    /**
+     * Create a new frame
+     * @param reconnect reconnecting to the server callback
+     * @param onClose closing frame callback
+     */
     public ConnectFrame(Runnable reconnect, Runnable onClose)
     {
-        super("Reconnect", onClose);
+        super("Reconnect (Close to exit the program)", "connect.png", onClose);
 
         reconnectButton.addActionListener(e -> {
             label.setText("Trying to connect to the server! Please, wait for a moment!");
+            //Disable the connect button after clicking it (wait for the connection)
             reconnectButton.setEnabled(false);
             reconnect.run();
         });
@@ -32,12 +44,14 @@ public class ConnectFrame extends TwoWaysDisposeFrame {
         contentPane.add(label, BorderLayout.PAGE_START);
         contentPane.add(reconnectButton, BorderLayout.PAGE_END);
 
-        setDefaultLookAndFeelDecorated(true);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         pack();
         setLocationRelativeTo(null);
     }
 
+    /**
+     * Set the frame's visibility
+     * @param visible the visible value
+     */
     @Override
     public void setVisible(boolean visible)
     {

@@ -11,14 +11,26 @@ import java.awt.*;
  * Client.GUI.Server.login
  * Created by NhatLinh - 19127652
  * Date 12/20/2021 - 10:59 PM
- * Description: The panel for getting account, password from users
+ * Description: The panel for getting username, password from users
  */
 public class AccountPanel extends JPanel {
 
+    /**
+     * Username input field
+     */
     protected final InputPanel accountPanel;
+    /**
+     * Password input field
+     */
     protected final PasswordInputPanel passwordPanel;
+    /**
+     * Confirm button
+     */
     protected final JButton confirmButton;
-    protected final JPanel confirmPanel;
+    /**
+     * The panel for confirm section
+     */
+    protected final JPanel confirmPanel = new JPanel();
     /**
      * Construct a new panel with the callback when clicking the confirm button
      * @param title the text displayed on the top of the panel
@@ -29,12 +41,11 @@ public class AccountPanel extends JPanel {
     {
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-        //Create account section
+        //Create username section
         accountPanel = new InputPanel("Account");
         //Create password section
         passwordPanel = new PasswordInputPanel("Password");
         //Create buttons section
-        confirmPanel = new JPanel(new FlowLayout());
         confirmButton = new JButton(buttonText);
 
         JButton backButton = new JButton(back.text());
@@ -43,17 +54,18 @@ public class AccountPanel extends JPanel {
         confirmPanel.add(confirmButton);
         confirmPanel.add(backButton);
 
-        JLabel label = new JLabel(title, SwingConstants.CENTER);
-        label.setFont(new Font("Default", Font.BOLD, 15));
-        this.add(Box.createVerticalStrut(20));
-        this.add(label);
-        //Add sections to main panel
+        setBorder(BorderFactory.createTitledBorder(title));
         this.add(Box.createVerticalStrut(10));
         this.add(accountPanel);
         this.add(Box.createVerticalStrut(10));
         this.add(passwordPanel);
+
     }
 
+    /**
+     * Check the fields are empty
+     * @return the check result (true: no empty field, false: there's at least empty field)
+     */
     protected boolean checkEmpty()
     {
         String account = accountPanel.getInputField().getText();
@@ -61,6 +73,10 @@ public class AccountPanel extends JPanel {
         return account == null || account.isBlank() || pass == null || pass.isBlank();
     }
 
+    /**
+     * Check the fields contains any spaces
+     * @return the check result (true: no field contains spaces, false: there's at least one field containing spaces)
+     */
     protected boolean checkBlank()
     {
         String account = accountPanel.getInputField().getText();

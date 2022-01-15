@@ -6,16 +6,20 @@ import sockets.protocols.accounts.Account;
 import sockets.protocols.accounts.AccountFullInformation;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.function.Predicate;
 
 /**
  * clientSide.GUI.login
  * Created by NhatLinh - 19127652
  * Date 1/8/2022 - 2:51 PM
- * Description: ...
+ * Description: The panel for singing up accounts
  */
 public class SignUpAccountPanel extends AccountPanel {
 
+    /**
+     * The field for inputting displayed name
+     */
     private final InputPanel displayedName = new InputPanel("Displayed name (showed to the others)");
 
     /**
@@ -43,13 +47,20 @@ public class SignUpAccountPanel extends AccountPanel {
                     JOptionPane.showMessageDialog(this, "Account and password can not contain space character. Pls! Check your inputs again!");
                     return;
                 }
+                //Can not create an account with system username
+                if (accountPanel.getInputField().getText().equals("system") && accountPanel.getInputField().getText().equals("System"))
+                {
+                    JOptionPane.showMessageDialog(this, "The username can not be system. Please, try another one!");
+                    return;
+                }
 
                 AccountFullInformation account = new AccountFullInformation(new Account(accountPanel.getInputField().getText(), passwordPanel.getPassword()),
                         displayedName.getInputField().getText());
+                //Call the callback to create a new account
                 if (onConfirmClick.test(account))
-                    JOptionPane.showMessageDialog(this, "Create account successfully!", "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Create username successfully!", "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
                 else
-                    JOptionPane.showMessageDialog(this, "Failed to create account!", "FAILED", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Failed to create username!", "FAILED", JOptionPane.ERROR_MESSAGE);
             }
             catch (Exception exception)
             {
@@ -64,6 +75,10 @@ public class SignUpAccountPanel extends AccountPanel {
     }
 
 
+    /**
+     * Check the fields are empty
+     * @return the check result (true: no empty field, false: there's at least empty field)
+     */
     @Override
     protected boolean checkEmpty()
     {

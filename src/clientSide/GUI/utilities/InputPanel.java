@@ -11,6 +11,9 @@ import java.awt.*;
  */
 public class InputPanel extends JPanel {
 
+    /**
+     * The text input field
+     */
     private final JTextField inputField;
 
     /**
@@ -35,6 +38,7 @@ public class InputPanel extends JPanel {
         JLabel label = new JLabel(labelText);
 
         inputField = new JTextField(firstShowInField);
+        //To make sure the panel not too high
         inputField.setMinimumSize(new Dimension(50, 20));
         inputField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 

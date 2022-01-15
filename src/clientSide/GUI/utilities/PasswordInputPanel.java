@@ -11,6 +11,9 @@ import java.awt.*;
  */
 public class PasswordInputPanel extends JPanel {
 
+    /**
+     * The field for inputting password
+     */
     private final JPasswordField passwordField;
 
     /**
@@ -23,6 +26,7 @@ public class PasswordInputPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
         JLabel label = new JLabel(labelText);
 
+        //To make sure the panel not too high
         passwordField = new JPasswordField();
         passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
 

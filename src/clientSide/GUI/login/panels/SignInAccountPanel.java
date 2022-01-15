@@ -5,13 +5,15 @@ import sockets.protocols.accounts.Account;
 import sockets.protocols.packet.Packet;
 
 import javax.swing.*;
+import java.awt.*;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 /**
  * clientSide.GUI.login
  * Created by NhatLinh - 19127652
  * Date 1/8/2022 - 2:56 PM
- * Description: ...
+ * Description: The panel for singing in accounts
  */
 public class SignInAccountPanel extends AccountPanel {
     /**
@@ -28,16 +30,17 @@ public class SignInAccountPanel extends AccountPanel {
         confirmButton.addActionListener(e->{
             try
             {
-                if (checkBlank())
+                if (checkBlank() || checkEmpty())
                 {
                     JOptionPane.showMessageDialog(this, "Account and password can not contain space character. Pls! Check your inputs again!");
                     return;
                 }
-
                 Account account = new Account(accountPanel.getInputField().getText(), passwordPanel.getPassword());
+                //Call the callback to sign in
                 Packet response = onConfirmClick.apply(account);
+                //If failed to sign in
                 if (!response.state())
-                    JOptionPane.showMessageDialog(this, response.getPayloadAsObject());
+                    JOptionPane.showMessageDialog(this, new String(response.payload(), StandardCharsets.UTF_8));
             }
             catch (Exception exception)
             {
