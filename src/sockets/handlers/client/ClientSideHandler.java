@@ -3,8 +3,6 @@ package sockets.handlers.client;
 import sockets.handlers.IntermediateSocket;
 import sockets.protocols.packet.CommandType;
 import sockets.protocols.packet.Packet;
-
-import javax.swing.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.function.Consumer;
@@ -39,10 +37,18 @@ public class ClientSideHandler extends IntermediateSocket {
     public void doFirstTouch()
     {
         //Try to receive a first touch packet to get the session id
-        Packet msg = receiveMessage(CommandType.FIRST_TOUCH);
-        if (msg == null)
-            return;
-        sessionID = msg.sessionID();
+        try
+        {
+            Packet msg = receiveMessage(CommandType.FIRST_TOUCH);
+            if (msg == null)
+                return;
+            sessionID = msg.sessionID();
+        }
+        catch (Exception e)
+        {
+            if (onClose != null)
+                onClose.run();
+        }
     }
 
     /**

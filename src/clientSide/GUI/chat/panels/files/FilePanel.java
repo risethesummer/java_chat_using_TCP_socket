@@ -43,7 +43,7 @@ public class FilePanel extends JPanel {
         add(nameLabel, BorderLayout.PAGE_START);
 
         //File icon section
-        LabelImage fileIcon = new LabelImage("files.png", ImageRepository.BIG);
+        LabelImage fileIcon = new LabelImage("file.png", ImageRepository.BIG);
         add(fileIcon, BorderLayout.CENTER);
     }
 }

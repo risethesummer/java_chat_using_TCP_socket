@@ -32,7 +32,7 @@ public class SendFileMessagePanel extends FileMessagePanel {
     public SendFileMessagePanel(FileMessage msg) {
         super(msg);
         progressBar.setStringPainted(true);
-        progressBar.setForeground(Color.yellow);
+        progressBar.setForeground(Color.LIGHT_GRAY);
         add(progressBar, BorderLayout.PAGE_END);
     }
 }

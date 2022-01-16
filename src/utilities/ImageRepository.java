@@ -2,7 +2,7 @@ package utilities;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.File;
+import java.net.URL;
 import java.util.Hashtable;
 
 /**
@@ -49,8 +49,6 @@ public class ImageRepository {
      */
     private final Hashtable<String, Image> images = new Hashtable<>();
 
-    private final String HEAD_PATH = "resources/";
-
     /**
      * Get an image by its name
      * @param name the name of the image
@@ -60,7 +58,7 @@ public class ImageRepository {
     {
         //Load the image if it was not loaded before
         if (!images.contains(name))
-            images.put(name, load(HEAD_PATH + name));
+            images.put(name, load(name));
         return images.get(name);
     }
 
@@ -91,7 +89,8 @@ public class ImageRepository {
     {
         try
         {
-            return ImageIO.read(new File(path));
+            URL imgURl = this.getClass().getClassLoader().getResource(path);
+            return ImageIO.read(imgURl);
         }
         catch (Exception e)
         {

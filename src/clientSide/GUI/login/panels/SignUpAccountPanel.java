@@ -6,7 +6,6 @@ import sockets.protocols.accounts.Account;
 import sockets.protocols.accounts.AccountFullInformation;
 
 import javax.swing.*;
-import java.awt.*;
 import java.util.function.Predicate;
 
 /**
@@ -58,9 +57,9 @@ public class SignUpAccountPanel extends AccountPanel {
                         displayedName.getInputField().getText());
                 //Call the callback to create a new account
                 if (onConfirmClick.test(account))
-                    JOptionPane.showMessageDialog(this, "Create username successfully!", "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Create account successfully!", "SUCCESS", JOptionPane.INFORMATION_MESSAGE);
                 else
-                    JOptionPane.showMessageDialog(this, "Failed to create username!", "FAILED", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Failed to create account!", "FAILED", JOptionPane.ERROR_MESSAGE);
             }
             catch (Exception exception)
             {

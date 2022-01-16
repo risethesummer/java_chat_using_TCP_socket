@@ -19,7 +19,7 @@ public class FileMessagePanel extends MessagePanel {
     /**
      * Determine how many files should be on a line
      */
-    private static final int MAX_FILE_ON_LINE = 4;
+    private static final int MAX_FILE_ON_LINE = 2;
 
     /**
      * Create a new panel
@@ -30,7 +30,10 @@ public class FileMessagePanel extends MessagePanel {
         List<FileTransfer> fileTransfer = msg.files();
         //JPanel filePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         //Each line should have MAX_FILE_ON_LINE files
-        JPanel filePanel = new JPanel (new GridLayout((fileTransfer.size() / MAX_FILE_ON_LINE) + 1, MAX_FILE_ON_LINE));
+        int row = fileTransfer.size() / MAX_FILE_ON_LINE;
+        //Add new a row if there's one  redundant file
+        row = fileTransfer.size() % MAX_FILE_ON_LINE != 0 ? row + 1 : row;
+        JPanel filePanel = new JPanel (new GridLayout(row, MAX_FILE_ON_LINE));
         for (FileTransfer file : fileTransfer)
             filePanel.add(new FileDownloadPanel(file));
         add(filePanel, BorderLayout.CENTER);

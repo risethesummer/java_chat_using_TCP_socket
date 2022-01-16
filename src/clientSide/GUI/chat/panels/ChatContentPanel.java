@@ -60,6 +60,8 @@ public class ChatContentPanel extends JPanel {
      * The panel for storing the other user's messages
      */
     private final JPanel leftLogPanel = new JPanel();
+
+
     /**
      * Store the other user information
      */
@@ -90,7 +92,7 @@ public class ChatContentPanel extends JPanel {
         logPanel.setBorder(BorderFactory.createTitledBorder(logPanel.getBorder(), user.displayedName() + " (online)", TitledBorder.TOP, TitledBorder.CENTER, new Font("DIALOGUE", Font.BOLD, 14), Color.GREEN));
         leftLogPanel.setLayout(new BoxLayout(leftLogPanel, BoxLayout.PAGE_AXIS));
         rightLogPanel.setLayout(new BoxLayout(rightLogPanel, BoxLayout.PAGE_AXIS));
-        JScrollPane chatScroll = new JScrollPane(logPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane chatScroll = new JScrollPane(logPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         logPanel.add(leftLogPanel);
         logPanel.add(rightLogPanel);
         add(chatScroll, BorderLayout.CENTER);
@@ -232,6 +234,24 @@ public class ChatContentPanel extends JPanel {
         add(outerInputPanel, BorderLayout.PAGE_END);
     }
 
+
+    /**
+     * Get the user
+     * @return the user information
+     */
+    public AccountShowInformation getUser() {
+        return user;
+    }
+
+    /**
+     * Get the value indicating that the user is online
+     * @return the online flag
+     */
+    public boolean getIsOnline()
+    {
+        return isOnline;
+    }
+
     /**
      * Add a new message to the chat panel
      * @param msg the message
@@ -284,6 +304,6 @@ public class ChatContentPanel extends JPanel {
         if (b)
             logPanel.setBorder(BorderFactory.createTitledBorder(logPanel.getBorder(), user.displayedName() + " (online)", TitledBorder.TOP, TitledBorder.CENTER, new Font("Default", Font.BOLD, 14), Color.GREEN));
         else
-            logPanel.setBorder(BorderFactory.createTitledBorder(logPanel.getBorder(), user.displayedName() + " (offline)", TitledBorder.TOP, TitledBorder.CENTER, new Font("Default", Font.BOLD, 14), Color.GREEN));
+            logPanel.setBorder(BorderFactory.createTitledBorder(logPanel.getBorder(), user.displayedName() + " (offline)", TitledBorder.TOP, TitledBorder.CENTER, new Font("Default", Font.BOLD, 14), Color.RED));
     }
 }

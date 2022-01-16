@@ -3,6 +3,7 @@ import sockets.protocols.packet.CommandType;
 import sockets.protocols.packet.Packet;
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -134,30 +135,31 @@ public abstract class IntermediateSocket extends Thread {
      * @param expected the expected type of the message
      * @return the message result (null if it gets timeout exception)
      */
-    public Packet receiveMessage(CommandType expected)
+    public Packet receiveMessage(CommandType expected) throws SocketException
     {
+        int maxTry = 30;
         Packet response;
         //Try to get a message having the type (loop until get it)
-        while (true)
+        for (int time = 0; time < maxTry; time++)
         {
             try
             {
                 response = receiveMessage();
                 //If it gets the appropriate message
                 if (response.cmd().equals(expected))
-                    break;
+                    return response;
             }
             catch (Exception e){}
         }
 
-        return response;
+        throw new SocketException("Exceed try times");
     }
 
     /**
      * Send a message through the base socket
      * @param msg the message is sent
      */
-    public void sendMsg(Packet msg)
+    public void sendMsg(Packet msg) throws SocketException
     {
         if (!socket.isClosed())
         {
@@ -171,35 +173,11 @@ public abstract class IntermediateSocket extends Thread {
             catch (Exception e)
             {
                 e.printStackTrace();
+                throw new SocketException("Can not send the message");
             }
         }
     }
 
-
-    /**
-     * Send a message and wait for its response
-     * @param msg the message is sent
-     * @return the response for the message
-     */
-    public Packet sendAndWaitForResponse(Packet msg)
-    {
-        try
-        {
-            //Mark sure can send data through the socket
-            if (!socket.isClosed() && socket.isConnected())
-            {
-                //Send message
-                sendMsg(msg);
-                //Get response
-                return receiveMessage();
-            }
-            return null;
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
-    }
 
     /**
      * Send a message and wait for its exact type response (because we can receive a message not matched the type we want)
@@ -207,24 +185,17 @@ public abstract class IntermediateSocket extends Thread {
      * @param expected the expected command type of the response
      * @return the exact response for the message
      */
-    public Packet sendAndWaitForResponse(Packet msg, CommandType expected)
+    public Packet sendAndWaitForResponse(Packet msg, CommandType expected) throws SocketException
     {
-        try
+        //Mark sure can send data through the socket
+        if (!socket.isClosed() && socket.isConnected())
         {
-            //Mark sure can send data through the socket
-            if (!socket.isClosed() && socket.isConnected())
-            {
-                //Send message
-                sendMsg(msg);
-                //Get response matched the expected type
-                return receiveMessage(expected);
-            }
-            return null;
+            //Send message
+            sendMsg(msg);
+            //Get response matched the expected type
+            return receiveMessage(expected);
         }
-        catch (Exception e)
-        {
-            return null;
-        }
+        return null;
     }
 
     /**

@@ -12,6 +12,7 @@ import sockets.protocols.packet.FileTransfer;
 import sockets.protocols.packet.Packet;
 
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.function.IntConsumer;
 
@@ -73,19 +74,29 @@ public class ClientManager {
         //The username is not null -> has signed in before
         if (userName != null)
         {
-            Packet response = handler.sendAndWaitForResponse(new Packet(handler.getSessionID(), userName, CommandType.RECONNECT), CommandType.RESPONSE);
-            if (response.state())
+            try
             {
-                //If the user has signed in before -> recover information (show chat frame)
-                gui.getChatFrame().reloadUsers((ArrayList<AccountShowInformation>)response.getPayloadAsObject());
-                gui.showChatFrame();
-                //Start to receiving messages because the user has signed in
-                handler.setShouldStop(false);
-                return;
+                Packet response = handler.sendAndWaitForResponse(new Packet(handler.getSessionID(), userName, CommandType.RECONNECT), CommandType.RESPONSE);
+                if (response.state())
+                {
+                    //If the user has signed in before -> recover information (show chat frame)
+                    gui.getChatFrame().reloadUsers((ArrayList<AccountShowInformation>)response.getPayloadAsObject());
+                    gui.getChatFrame().addLog("You has just reconnected to the server");
+                    gui.showChatFrame();
+                    //Start to receiving messages because the user has signed in
+                    handler.setShouldStop(false);
+                    return;
+                }
             }
+            catch (SocketException e)
+            {
+                e.printStackTrace();
+            }
+
         }
-        //If the user is new to the program -> show login frame
-        gui.showLoginFrame();
+        if (gui != null)
+            //If the user is new to the program -> show login frame
+            gui.showLoginFrame();
     }
 
     /**
@@ -151,6 +162,8 @@ public class ClientManager {
                 this.userName = account.username();
                 //Show current online users
                 gui.getChatFrame().reloadUsers((ArrayList<AccountShowInformation>)response.getPayloadAsObject());
+                gui.getChatFrame().setTitle(String.format("%s (%s) - Chat frame (close to sign out)", response.sender(), account.username()));
+                gui.getChatFrame().addLog("You has just signed in");
                 gui.showChatFrame();
                 //Start to receiving messages (because we don't need to receive message when signing in or reconnecting)
                 handler.setShouldStop(false);
@@ -161,8 +174,9 @@ public class ClientManager {
             }
             return response;
         }
-        catch (Exception e)
+        catch (SocketException s)
         {
+            handlingDisconnect();
             return null;
         }
     }
@@ -254,12 +268,12 @@ public class ClientManager {
                 return false;
             }
             //Wait for the response
-            Packet response = handler.sendAndWaitForResponse(new Packet(handler.getSessionID(), CommandType.SIGN_UP, account));
+            Packet response = handler.sendAndWaitForResponse(new Packet(handler.getSessionID(), CommandType.SIGN_UP, account), CommandType.RESPONSE);
             return response.state();
         }
-        catch (Exception e)
+        catch (SocketException e)
         {
-            e.printStackTrace();
+            handlingDisconnect();
             return false;
         }
     }

@@ -6,6 +6,7 @@ import sockets.protocols.packet.Packet;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -39,8 +40,16 @@ public class ServerSideHandler extends IntermediateSocket {
      */
     @Override
     public void doFirstTouch() {
-        //Send a packet containing the session id
-        sendMsg(new Packet(sessionID, CommandType.FIRST_TOUCH));
+        try
+        {
+            //Send a packet containing the session id
+            sendMsg(new Packet(sessionID, CommandType.FIRST_TOUCH));
+        }
+        catch (SocketException e)
+        {
+            if (onClose != null)
+                onClose.accept(this.sessionID);
+        }
     }
 
     /**

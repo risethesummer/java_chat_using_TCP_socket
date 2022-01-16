@@ -1,11 +1,8 @@
 package sockets.handlers.client;
 import sockets.protocols.packet.Packet;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.*;
 import java.net.Socket;
-import java.util.function.DoubleConsumer;
 import java.util.function.IntConsumer;
 
 /**
@@ -66,8 +63,10 @@ public class SendMessageAsync extends Thread {
                     {
                         //Send every byte of the packet
                         outStream.write(sentContent[send]);
+                        //Can be run out of number if the file is large
+                        double currentPro = (double)send / sentContent.length;
                         //Callback to give curren progress
-                        showProgress.accept(send * 100 / sentContent.length);
+                        showProgress.accept((int)(currentPro * 100));
                     }
 
                     //Because we can only 99 (divide integers)
@@ -78,6 +77,7 @@ public class SendMessageAsync extends Thread {
                 catch (Exception e)
                 {
                     showProgress.accept(0);
+                    e.printStackTrace();
                 }
             }
         }

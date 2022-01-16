@@ -70,6 +70,18 @@ public record Packet(UUID sessionID, String sender, String receiver, CommandType
     }
 
     /**
+     * Create a new packet with session id, command type and payload (object)
+     * @param sessionID the session id of the sender
+     * @param sender the sender of the message
+     * @param cmd the command type
+     * @param obj the payload object implementing Serializable interface
+     */
+    public Packet(UUID sessionID, String sender, CommandType cmd, Serializable obj)
+    {
+        this(sessionID, sender,null, cmd, true, toPayload(obj));
+    }
+
+    /**
      * Create a new packet with session id, sender and command type
      * @param sessionID the session id of the sender
      * @param cmd the command type

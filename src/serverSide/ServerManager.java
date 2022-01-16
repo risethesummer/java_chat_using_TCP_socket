@@ -10,6 +10,7 @@ import sockets.handlers.server.ServerSideHandler;
 import sockets.protocols.packet.CommandType;
 import sockets.protocols.packet.Packet;
 import java.net.ServerSocket;
+import java.net.SocketException;
 import java.util.*;
 
 import static sockets.protocols.packet.ErrorContent.*;
@@ -182,7 +183,7 @@ public class ServerManager {
             {
                 accountToSessionID.put(account.username(), msg.sessionID());
                 //The response message has current online users (to first show in the chat panel of the client)
-                response = new Packet(msg.sessionID(), CommandType.RESPONSE, getOnlineUsers(account.username()));
+                response = new Packet(msg.sessionID(), accountManager.getAccounts().get(account.username()).displayedName(), CommandType.RESPONSE, getOnlineUsers(account.username()));
                 //Notify to the other clients that a new user has signed in
                 sendAll(new Packet(account.username(), CommandType.NOTIFY_IN, accountManager.getAccounts().get(account.username()).displayedName()));
                 //Add new online user
@@ -297,7 +298,16 @@ public class ServerManager {
         //Get the handler by the message's session id
         ServerSideHandler handler = handlers.get(msg.sessionID());
         if (handler != null)
-            handler.sendMsg(msg);
+        {
+            try
+            {
+                handler.sendMsg(msg);
+            }
+            catch (SocketException e)
+            {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -312,7 +322,16 @@ public class ServerManager {
         for (Map.Entry<UUID, ServerSideHandler> handler : handlers.entrySet())
             //If not the handler of the sender
             if (!handler.getKey().equals(senderID))
-                handler.getValue().sendMsg(msg);
+            {
+                try
+                {
+                    handler.getValue().sendMsg(msg);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
     }
 
     /**
