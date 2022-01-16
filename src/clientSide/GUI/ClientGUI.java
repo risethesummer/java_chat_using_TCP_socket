@@ -9,7 +9,6 @@ import sockets.protocols.accounts.Account;
 import sockets.protocols.accounts.AccountFullInformation;
 import sockets.protocols.packet.Packet;
 
-import javax.swing.*;
 import java.util.function.*;
 
 /**

@@ -5,7 +5,6 @@ import clientSide.GUI.utilities.InputPanel;
 import clientSide.GUI.utilities.PasswordInputPanel;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * Client.GUI.Server.login

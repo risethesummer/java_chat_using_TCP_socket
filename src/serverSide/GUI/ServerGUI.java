@@ -28,12 +28,12 @@ public class ServerGUI extends JFrame {
     /**
      * Log user activities
      */
-    private final DefaultListModel logModel = new DefaultListModel();
+    private final DefaultListModel<String> logModel = new DefaultListModel<>();
 
     /**
      * Show current online users
      */
-    private final DefaultListModel userModel = new DefaultListModel();
+    private final DefaultListModel<String> userModel = new DefaultListModel<>();
 
     /**
      * Closing callback when trying to turn off the frame
@@ -71,8 +71,8 @@ public class ServerGUI extends JFrame {
         });
         closeButton.setEnabled(false);
 
-        JList logList = new JList(logModel);
-        JList userList = new JList(userModel);
+        JList<String> logList = new JList<>(logModel);
+        JList<String> userList = new JList<>(userModel);
 
         JTabbedPane listTab = new JTabbedPane();
         listTab.add("Online users", userList);

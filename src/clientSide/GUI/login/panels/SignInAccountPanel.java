@@ -5,7 +5,6 @@ import sockets.protocols.accounts.Account;
 import sockets.protocols.packet.Packet;
 
 import javax.swing.*;
-import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
